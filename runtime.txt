@@ -1,0 +1,6 @@
+python-3.10.12
+fastapi
+uvicorn
+tensorflow
+numpy
+pillow
