@@ -1,0 +1,9 @@
+@echo off
+echo Starting FastAPI...
+start cmd /k uvicorn main:app --reload
+
+echo Starting HTTP server...
+start cmd /k python -m http.server 5500
+
+echo Opening Browser...
+start http://localhost:5500

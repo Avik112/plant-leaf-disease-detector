@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PlantLeaf Disease Detector</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto; /* allow vertical scrolling if needed */
+      background: linear-gradient(to right, #d0f0c0, #f0fff0);
+      font-family: 'Comfortaa', cursive;
+      text-align: center;
+      padding: 50px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #2d572c;
+    }
+
+    .welcome {
+      font-size: 1.2rem;
+      color: #444;
+      margin-bottom: 40px;
+    }
+
+    .file-input {
+      margin: 20px 0;
+      display: inline-block;
+      background: #e0ffe0;
+      border: 2px solid #4CAF50;
+      border-radius: 30px;
+      padding: 15px 20px;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+      transition: transform 0.3s ease;
+      animation: floatInput 4s ease-in-out infinite;
+    }
+
+    .file-input:hover {
+      transform: scale(1.05);
+    }
+
+    input[type="file"] {
+      border: none;
+      background: transparent;
+      font-family: 'Comfortaa', cursive;
+      font-size: 1rem;
+      color: #2d572c;
+    }
+
+    .btn-predict {
+      background: #4CAF50;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-predict:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+
+    .plant-icon {
+      width: 200px;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translatey(0px); }
+      50% { transform: translatey(-15px); }
+      100% { transform: translatey(0px); }
+    }
+
+    @keyframes floatInput {
+      0% { transform: translatey(0px); }
+      50% { transform: translatey(-10px); }
+      100% { transform: translatey(0px); }
+    }
+
+    .leaf {
+      position: absolute;
+      width: 40px;
+      animation: fall 12s linear infinite;
+    }
+
+    .leaf1 { left: 5%; animation-delay: 0s; }
+    .leaf2 { left: 20%; animation-delay: 1s; }
+    .leaf3 { left: 35%; animation-delay: 2s; }
+    .leaf4 { left: 50%; animation-delay: 3s; }
+    .leaf5 { left: 65%; animation-delay: 4s; }
+    .leaf6 { left: 80%; animation-delay: 5s; }
+    .leaf7 { left: 95%; animation-delay: 2.5s; }
+
+    @keyframes fall {
+      0% { top: -50px; transform: rotate(0deg); }
+      100% { top: 100%; transform: rotate(360deg); }
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 1.3rem;
+      color: #2d572c;
+      white-space: pre-line;
+    }
+
+    #imageContainer {
+      margin-top: 20px;
+    }
+
+    #uploadedImage {
+      max-width: 300px;
+      border: 2px solid #4CAF50;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+      display: block;
+      margin: 20px auto; /* center horizontally */
+    }
+
+  </style>
+</head>
+
+<body>
+  <!-- Local cute potato image -->
+  <img src="plantcute.png" alt="Cuteplant" class="plant-icon">
+
+  <h1> Welcome to the plant Leaf Disease Detector </h1>
+  <p class="welcome">
+    Upload a photo of your plant leaf and let our smart AI detect if it’s healthy or has early or late blight.
+  </p>
+
+  <div class="file-input">
+    <input type="file" id="fileInput" accept="image/*" />
+  </div>
+
+  <br>
+  <button onclick="uploadImage()" class="btn btn-predict">🌱 Predict Disease</button>
+
+  <h2 id="result"></h2>
+
+  <!-- Centered container for uploaded image -->
+  <div id="imageContainer">
+    <img id="uploadedImage" src="#" alt="" style="display:none;" />
+  </div>
+
+  <!-- Local falling leaves with extra leaves -->
+  <img src="leaf.png" alt="Leaf" class="leaf leaf1">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf2">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf3">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf4">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf5">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf6">
+  <img src="leaf.png" alt="Leaf" class="leaf leaf7">
+
+  <script>
+    async function uploadImage() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please select an image file.');
+        return;
+      }
+
+      // Show the uploaded image preview in the center
+      const uploadedImage = document.getElementById('uploadedImage');
+      uploadedImage.src = URL.createObjectURL(file);
+      uploadedImage.style.display = "block";
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('http://localhost:8000/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById('result').innerText =
+          `Prediction: ${data.class}\nConfidence: ${(data.confidence * 100).toFixed(2)}%`;
+
+      } catch (error) {
+        console.error(error);
+        alert('Error: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
